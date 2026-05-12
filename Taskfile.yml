@@ -1,0 +1,58 @@
+version: "3"
+
+vars:
+  DOCKER_COMPOSE_FILE: ./docker-compose.yaml
+  GOOSE_DRIVER: postgres
+  GOOSE_DBSTRING: "postgres://postgres:postgres@localhost:5432/auth?sslmode=disable"
+
+tasks:
+  docker:up:
+    desc: docker compose up
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+
+  docker:down:
+    desc: docker compose down
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} down
+
+  department:run:
+    desc: run department service
+    cmds:
+      - go run cmd/main.go
+
+  department:build:
+    desc: build department service
+    cmds:
+      - go build -o bin/department cmd/main.go
+
+  department:test:
+    desc: run tests
+    cmds:
+      - go test -v ./...
+
+  migration:create:
+    desc: create new migration
+    cmds:
+      - goose -dir migrations create {{.CLI_ARGS}} sql
+
+  migration:up:
+    desc: migrations up
+    cmds:
+      - goose -dir migrations {{.GOOSE_DRIVER}} "{{.GOOSE_DBSTRING}}" up
+
+  migration:down:
+    desc: migration down
+    cmds:
+      - goose -dir migrations {{.GOOSE_DRIVER}} "{{.GOOSE_DBSTRING}}" down
+
+  lint:
+    desc: lint service
+    cmds:
+      - golangci-lint run ./...
+
+  fmt:
+    desc: format code
+    cmds:
+      - gofmt -s -w .
+      - goimports -w .

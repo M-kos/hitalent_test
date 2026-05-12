@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_NAME}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    stop_grace_period: 30s
+    networks:
+      - department-network
+
+  migrations-up:
+    image: ghcr.io/kukymbr/goose-docker:3.27.1
+    environment:
+      GOOSE_DRIVER: ${GOOSE_DRIVER}
+      GOOSE_DBSTRING: ${GOOSE_DBSTRING}
+      GOOSE_TABLE: ${GOOSE_TABLE}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./migrations:/migrations
+    command:
+      - goose
+      - -dir
+      - /migrations
+      - up
+    networks:
+      - department-network
+
+  department_service:
+    image: department-service:latest
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations-up:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - ${SERVICE_PORT}:${SERVICE_PORT}
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_NAME: ${POSTGRES_NAME}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+
+volumes:
+  postgres_data:
+
+networks:
+  department-network:
+    driver: bridge
