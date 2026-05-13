@@ -7,7 +7,11 @@ import (
 	"github.com/M-kos/hitalent_test/internal/config"
 )
 
-func New(config *config.Config) *slog.Logger {
+type Logger struct {
+	slog.Logger
+}
+
+func New(config *config.Config) *Logger {
 	level := slog.LevelDebug
 
 	if config != nil && config.LogLevel != "" {
