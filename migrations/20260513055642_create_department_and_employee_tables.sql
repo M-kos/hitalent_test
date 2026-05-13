@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS department
 (
 	id BIGSERIAL PRIMARY KEY,
-	name TEXT NOT NULL,
+	name TEXT NOT NULL UNIQUE CHECK (name <> ''),
 	parent_id BIGINT NULL REFERENCES department (id) ON DELETE SET NULL CHECK ( parent_id IS NULL OR parent_id != id),
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

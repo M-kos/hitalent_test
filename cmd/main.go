@@ -5,6 +5,8 @@ import (
 
 	"github.com/M-kos/hitalent_test/internal/config"
 	"github.com/M-kos/hitalent_test/pkg/logger"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -15,4 +17,8 @@ func main() {
 	}
 
 	log := logger.New(conf)
+
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
