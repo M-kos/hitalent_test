@@ -36,7 +36,7 @@ func main() {
 
 	gormDb, err := db.OpenGormConnection(ctx, conf)
 	if err != nil {
-		log.Error("failed to connect to database", "error", err.Error())
+		log.Handler.Error("failed to connect to database", "error", err.Error())
 		return
 	}
 
@@ -53,31 +53,31 @@ func main() {
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error("listen and serve", "msg", err.Error())
+			log.Handler.Error("listen and serve", "msg", err.Error())
 			cancel()
 		}
 	}()
 
-	log.Info("server starting", slog.Int("port", conf.Port))
+	log.Handler.Info("server starting", slog.Int("port", conf.Port))
 
 	<-ctx.Done()
-	log.Info("shutdown signal received")
+	log.Handler.Info("shutdown signal received")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Error("shutdown server error", "msg", err.Error())
+		log.Handler.Error("shutdown server error", "msg", err.Error())
 	}
 
 	sqlDB, err := gormDb.DB()
 	if err != nil {
-		log.Error("failed to get sql db from gorm", "error", err.Error())
+		log.Handler.Error("failed to get sql db from gorm", "error", err.Error())
 	} else {
 		if err := sqlDB.Close(); err != nil {
-			log.Error("failed to close db", "error", err.Error())
+			log.Handler.Error("failed to close db", "error", err.Error())
 		}
 	}
 
-	log.Info("server shutdown", slog.Int("port", conf.Port))
+	log.Handler.Info("server shutdown", slog.Int("port", conf.Port))
 }

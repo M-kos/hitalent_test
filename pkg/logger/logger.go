@@ -8,7 +8,7 @@ import (
 )
 
 type Logger struct {
-	slog.Logger
+	Handler *slog.Logger
 }
 
 func New(config *config.Config) *Logger {
@@ -35,5 +35,7 @@ func New(config *config.Config) *Logger {
 
 	handler := slog.NewJSONHandler(os.Stdout, opts)
 
-	return slog.New(handler)
+	return &Logger{
+		Handler: slog.New(handler),
+	}
 }
