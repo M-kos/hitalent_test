@@ -2,25 +2,23 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/M-kos/hitalent_test/internal/domain"
 	"github.com/M-kos/hitalent_test/internal/repository/query"
 	"github.com/M-kos/hitalent_test/internal/repository/record"
-	"github.com/M-kos/hitalent_test/pkg/logger"
 	"gorm.io/gorm"
 )
 
 const MaxDepth = 999
 
 type DepartmentRepository struct {
-	db     *gorm.DB
-	logger *logger.Logger
+	db *gorm.DB
 }
 
-func NewDepartmentRepository(db *gorm.DB, logger *logger.Logger) *DepartmentRepository {
+func NewDepartmentRepository(db *gorm.DB) *DepartmentRepository {
 	return &DepartmentRepository{
-		db:     db,
-		logger: logger,
+		db: db,
 	}
 }
 
@@ -45,7 +43,20 @@ func (dr *DepartmentRepository) CreateEmployee(ctx context.Context, employee *do
 	var rec record.EmployeeRecord
 	rec.FromDomain(employee)
 
-	err := dr.db.WithContext(ctx).Raw(query.CreateEmployee, rec.DepartmentID, rec.FullName, rec.Position, rec.HiredAt).Scan(&rec).Error
+	err := dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var exists bool
+		tx.Raw(query.CheckDepartment, employee.DepartmentID).Scan(&exists)
+		if !exists {
+			return domain.ErrDepartmentNotFound
+		}
+
+		err := tx.Raw(query.CreateEmployee, rec.DepartmentID, rec.FullName, rec.Position, rec.HiredAt).Scan(&rec).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +130,9 @@ func (dr *DepartmentRepository) UpdateDepartment(ctx context.Context, department
 
 	err := dr.db.WithContext(ctx).Raw(query.UpdateDepartment, rec.Name, rec.ParentID).Scan(&rec).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrDepartmentNotFound
+		}
 		return nil, err
 	}
 
@@ -163,6 +177,12 @@ func (dr *DepartmentRepository) DeleteCascadeDepartment(ctx context.Context, dep
 
 func (dr *DepartmentRepository) DeleteAndReassignDepartment(ctx context.Context, departmentId int, reassignDepartmentId int) error {
 	return dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var exists bool
+		tx.Raw(query.CheckDepartment, departmentId).Scan(&exists)
+		if !exists {
+			return domain.ErrDepartmentNotFound
+		}
+
 		err := tx.Raw(query.DeleteDepartments, []int{departmentId}).Error
 		if err != nil {
 			return err

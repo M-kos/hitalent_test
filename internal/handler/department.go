@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/M-kos/hitalent_test/internal/config"
+	"github.com/M-kos/hitalent_test/internal/constants"
 	"github.com/M-kos/hitalent_test/internal/domain"
 	"github.com/M-kos/hitalent_test/internal/handler/dto"
 	"github.com/M-kos/hitalent_test/pkg/logger"
@@ -20,12 +21,7 @@ type DepartmentService interface {
 		id               int
 		depth            int
 		includeEmployees bool
-	}) struct {
-		department         *domain.Department
-		employees          []*domain.Employee
-		childrenDepartment []*domain.Department
-		err                error
-	}
+	}) (*domain.DepartmentTree, error)
 	UpdateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error)
 	DeleteDepartment(ctx context.Context, departmentId int, mode string, reassignId int) error
 }
@@ -36,8 +32,6 @@ const (
 	GetDepartmentUrl    = "GET /departments/{id}"
 	UpdateDepartmentUrl = "PATCH /departments/{id}"
 	DeleteDepartmentUrl = "DELETE /departments/{id}"
-	ModeCascade         = "cascade"
-	ModeReassign        = "reassign"
 )
 
 type Department struct {
@@ -161,12 +155,12 @@ func (d *Department) department(w http.ResponseWriter, r *http.Request) {
 		includeEmployees = true
 	}
 
-	result := d.service.Department(r.Context(), struct {
+	tree, err := d.service.Department(r.Context(), struct {
 		id               int
 		depth            int
 		includeEmployees bool
 	}{id: departmentId, depth: depth, includeEmployees: includeEmployees})
-	if result.err != nil {
+	if err != nil {
 		if errors.Is(err, domain.ErrDepartmentNotFound) {
 			d.logger.Error("[Get Department] wrong department", "error", err)
 			writeErrorJSON(w, err.Error(), http.StatusNotFound)
@@ -179,7 +173,7 @@ func (d *Department) department(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var departmentResponse dto.DepartmentResponse
-	departmentResponse.FromDomain(result.department, result.employees, result.childrenDepartment)
+	departmentResponse.FromDomain(tree.Department, tree.Employees, tree.ChildrenDepartment)
 
 	err = writeJSON(w, http.StatusOK, departmentResponse)
 	if err != nil {
@@ -252,7 +246,7 @@ func (d *Department) deleteDepartment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reassignDepartmentId, err := strconv.Atoi(queryReassignDepartmentId)
-	if err != nil && mode == ModeReassign {
+	if err != nil && mode == constants.ModeReassign {
 		d.logger.Error("[Delete Department] wrong reassign department id", "error", err)
 		writeErrorJSON(w, "invalid reassign department id", http.StatusBadRequest)
 		return
@@ -302,9 +296,9 @@ func writeJSON(w http.ResponseWriter, statusCode int, data any) error {
 
 func modeValidate(mode string) bool {
 	switch mode {
-	case ModeCascade:
+	case constants.ModeCascade:
 		return true
-	case ModeReassign:
+	case constants.ModeReassign:
 		return true
 	default:
 		return false

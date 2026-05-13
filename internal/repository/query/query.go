@@ -5,6 +5,8 @@ import _ "embed"
 var (
 	//go:embed create-department.sql
 	CreateDepartment string
+	//go:embed check-department.sql
+	CheckDepartment string
 	//go:embed create-employee.sql
 	CreateEmployee string
 	//go:embed delete-departments.sql
