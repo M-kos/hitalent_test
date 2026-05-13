@@ -78,8 +78,8 @@ func (dr *DepartmentRepository) ListEmployeesByDepartmentId(ctx context.Context,
 
 	employees := make([]*domain.Employee, 0, len(employeeRecords))
 
-	for _, record := range employeeRecords {
-		employee, err := record.ToDomain()
+	for _, rec := range employeeRecords {
+		employee, err := rec.ToDomain()
 		if err != nil {
 			return nil, err
 		}

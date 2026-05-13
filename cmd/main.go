@@ -34,7 +34,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	gormDb, err := db.OpenGormConnection(ctx, conf)
+	gormDb, err := db.OpenGormConnection(conf)
 	if err != nil {
 		log.Handler.Error("failed to connect to database", "error", err.Error())
 		return

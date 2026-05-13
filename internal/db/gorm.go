@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"net"
 	"net/url"
 
@@ -12,7 +11,7 @@ import (
 
 const dBScheme = "postgres"
 
-func OpenGormConnection(ctx context.Context, conf *config.Config) (*gorm.DB, error) {
+func OpenGormConnection(conf *config.Config) (*gorm.DB, error) {
 	return gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn(conf),
 		PreferSimpleProtocol: true,
