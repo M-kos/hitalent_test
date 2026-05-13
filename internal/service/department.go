@@ -21,26 +21,30 @@ type DepartmentService struct {
 	repo DepartmentRepository
 }
 
-func (d DepartmentService) CreateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
+func NewDepartmentService(repo DepartmentRepository) *DepartmentService {
+	return &DepartmentService{repo: repo}
+}
+
+func (d *DepartmentService) CreateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
 	return d.repo.CreateDepartment(ctx, department)
 }
 
-func (d DepartmentService) CreateEmployee(ctx context.Context, employee *domain.Employee) (*domain.Employee, error) {
+func (d *DepartmentService) CreateEmployee(ctx context.Context, employee *domain.Employee) (*domain.Employee, error) {
 	return d.repo.CreateEmployee(ctx, employee)
 }
 
-func (d DepartmentService) Department(ctx context.Context, payload struct {
-	id               int
-	depth            int
-	includeEmployees bool
-}) (*domain.DepartmentTree, error) {
-	tree, err := d.repo.DepartmentTree(ctx, payload.id, payload.depth)
+func (d *DepartmentService) Department(ctx context.Context,
+	id int,
+	depth int,
+	includeEmployees bool,
+) (*domain.DepartmentTree, error) {
+	tree, err := d.repo.DepartmentTree(ctx, id, depth)
 	if err != nil {
 		return nil, err
 	}
 
-	if payload.includeEmployees {
-		employeea, err := d.repo.ListEmployeesByDepartmentId(ctx, []int{payload.id})
+	if includeEmployees {
+		employeea, err := d.repo.ListEmployeesByDepartmentId(ctx, []int{id})
 		if err != nil {
 			return nil, err
 		}
@@ -50,11 +54,11 @@ func (d DepartmentService) Department(ctx context.Context, payload struct {
 	return tree, nil
 }
 
-func (d DepartmentService) UpdateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
+func (d *DepartmentService) UpdateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
 	return d.repo.UpdateDepartment(ctx, department)
 }
 
-func (d DepartmentService) DeleteDepartment(ctx context.Context, departmentId int, mode string, reassignId int) error {
+func (d *DepartmentService) DeleteDepartment(ctx context.Context, departmentId int, mode string, reassignId int) error {
 	switch mode {
 	case constants.ModeCascade:
 		return d.repo.DeleteCascadeDepartment(ctx, departmentId)

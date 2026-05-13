@@ -17,11 +17,11 @@ import (
 type DepartmentService interface {
 	CreateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error)
 	CreateEmployee(ctx context.Context, employee *domain.Employee) (*domain.Employee, error)
-	Department(ctx context.Context, payload struct {
-		id               int
-		depth            int
-		includeEmployees bool
-	}) (*domain.DepartmentTree, error)
+	Department(
+		ctx context.Context,
+		id int,
+		depth int,
+		includeEmployees bool) (*domain.DepartmentTree, error)
 	UpdateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error)
 	DeleteDepartment(ctx context.Context, departmentId int, mode string, reassignId int) error
 }
