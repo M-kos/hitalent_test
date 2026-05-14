@@ -53,7 +53,6 @@ func (d *DepartmentResponse) FromDomain(department *domain.Department, employees
 			DepartmentID: employee.DepartmentID,
 			FullName:     employee.FullName,
 			Position:     employee.Position,
-			HiredAt:      employee.HiredAt.Format(time.RFC3339),
 			CreatedAt:    employee.CreatedAt.Format(time.RFC3339),
 		}
 
@@ -79,7 +78,7 @@ func makeDepartmentChildren(startParentId int, departments []*domain.Department)
 	deeperChildren := make([]*domain.Department, 0, len(departments)/2)
 
 	for _, department := range departments {
-		if startParentId == department.Parent.ID {
+		if department.Parent != nil && startParentId == department.Parent.ID {
 			parentIdToDepartments[startParentId] = append(parentIdToDepartments[startParentId], department)
 			continue
 		}
