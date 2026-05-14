@@ -22,7 +22,7 @@ tasks:
   department:run:
     desc: run department service
     cmds:
-      - go run cmd/main.go
+      - go run cmd/main.go -local
 
   # https://github.com/githubnemo/CompileDaemon
   department:run:local:hot:

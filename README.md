@@ -37,26 +37,38 @@
     Проект использует [Task](https://taskfile.dev/) для управления задачами. Доступные команды:
     
     Docker
-    - `task docker:up` — поднять контейнеры
-    - `task docker:up:local` — поднять только БД и миграции
-    - `task docker:down` — остановить контейнеры
+    - task docker:up — поднять контейнеры
+    - task docker:up:local — поднять только БД и миграции
+    - task docker:down — остановить контейнеры
     
     Запуск сервиса
-    - `task department:run` — запустить сервис локально
-    - `task department:run:local:hot` — запустить с горячей перезагрузкой
-    - `task department:build` — собрать бинарник
+    - task department:run — запустить сервис локально
+    - task department:run:local:hot — запустить с горячей перезагрузкой
+    - task department:build — собрать бинарник
     
     Тесты
-    - `task department:test` — запустить все тесты
+    - task department:test — запустить все тесты
     
     Миграции
-    - `task migration:create <name>` — создать новую миграцию
-    - `task migration:up` — применить миграции
-    - `task migration:down` — откатить последнюю миграцию
+    - task migration:create <name> — создать новую миграцию
+    - task migration:up — применить миграции
+    - task migration:down — откатить последнюю миграцию
     
     Линтинг и форматирование
-    - `task lint` — запустить линтер
-    - `task fmt` — отформатировать код
+    - task lint — запустить линтер
+    - task fmt — отформатировать код
+    ```
+5. Запуск
+    #### Локально
+    ```bash
+   task docker:up:local
+   ```
+   ```bash 
+   task department:run
+    ```
+   #### В контейнере
+    ```bash
+    task docker:up
     ```
 ## API
 
