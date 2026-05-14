@@ -11,7 +11,7 @@ WITH RECURSIVE department_tree AS (
     SELECT
         d.id,
         d.name,
-        d.parent_id,
+        d.parent_id
     FROM department d
     INNER JOIN department_tree dt
         ON d.parent_id = dt.id

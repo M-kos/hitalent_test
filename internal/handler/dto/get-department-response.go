@@ -72,7 +72,7 @@ func makeDepartmentChildren(startParentId int, departments []*domain.Department)
 		return nil
 	}
 
-	parrentIdToDepatments := map[int][]*domain.Department{
+	parentIdToDepartments := map[int][]*domain.Department{
 		startParentId: make([]*domain.Department, 0, len(departments)),
 	}
 
@@ -80,16 +80,16 @@ func makeDepartmentChildren(startParentId int, departments []*domain.Department)
 
 	for _, department := range departments {
 		if startParentId == department.Parent.ID {
-			parrentIdToDepatments[startParentId] = append(parrentIdToDepatments[startParentId], department)
+			parentIdToDepartments[startParentId] = append(parentIdToDepartments[startParentId], department)
 			continue
 		}
 
 		deeperChildren = append(deeperChildren, department)
 	}
 
-	result := make([]GetDepartmentChildrenDto, 0, len(parrentIdToDepatments[startParentId]))
+	result := make([]GetDepartmentChildrenDto, 0, len(parentIdToDepartments[startParentId]))
 
-	for _, department := range parrentIdToDepatments[startParentId] {
+	for _, department := range parentIdToDepartments[startParentId] {
 		dto := GetDepartmentChildrenDto{
 			ID:        department.ID,
 			Name:      department.Name,

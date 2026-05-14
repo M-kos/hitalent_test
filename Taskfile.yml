@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  DOCKER_COMPOSE_FILE: ./docker-compose.yaml
+  DOCKER_COMPOSE_FILE: docker-compose.yml
   GOOSE_DRIVER: postgres
   GOOSE_DBSTRING: "postgres://postgres:postgres@localhost:5432/auth?sslmode=disable"
 
@@ -10,6 +10,9 @@ tasks:
     desc: docker compose up
     cmds:
       - docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+
+  docker:up:local:
+    docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d postgres migrations-up
 
   docker:down:
     desc: docker compose down
@@ -20,6 +23,10 @@ tasks:
     desc: run department service
     cmds:
       - go run cmd/main.go
+
+  # https://github.com/githubnemo/CompileDaemon
+  department:run:local:hot:
+    CompileDaemon -exclude-dir=.git -exclude-dir=bin -build='task department:build' -command='./bin/department -local' -color=true
 
   department:build:
     desc: build department service

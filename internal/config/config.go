@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"log/slog"
 	"os"
 
@@ -38,9 +39,21 @@ func Load() (*Config, error) {
 }
 
 func loadEnvFile() {
-	if _, err := os.Stat(".env"); err == nil {
-		if err := godotenv.Load(".env"); err != nil {
+	envFile := ".env"
+
+	if checkLocal() {
+		envFile = ".env.local"
+	}
+
+	if _, err := os.Stat(envFile); err == nil {
+		if err := godotenv.Load(envFile); err != nil {
 			slog.Error("failed to load .env file", "error", err.Error())
 		}
 	}
+}
+
+func checkLocal() bool {
+	isLocal := flag.Bool("local", false, "check local development")
+	flag.Parse()
+	return *isLocal
 }

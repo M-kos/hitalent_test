@@ -1,2 +1,2 @@
 DELETE FROM department
-WHERE id = ANY(?)
+WHERE id IN ?

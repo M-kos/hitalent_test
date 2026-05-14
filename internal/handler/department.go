@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -50,7 +51,7 @@ func (d *Department) createDepartment(w http.ResponseWriter, r *http.Request) {
 
 	if err := createDepartmentDto.Validate(); err != nil {
 		d.logger.Handler.Error("[Create Department] error validating create department", "error", err)
-		writeErrorJSON(w, "validation error", http.StatusBadRequest)
+		writeErrorJSON(w, fmt.Sprintf("validation error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -95,7 +96,7 @@ func (d *Department) createEmployee(w http.ResponseWriter, r *http.Request) {
 
 	if err := createEmployeeDto.Validate(); err != nil {
 		d.logger.Handler.Error("[Create Employee] error validating create employee", "error", err)
-		writeErrorJSON(w, "validation error", http.StatusBadRequest)
+		writeErrorJSON(w, fmt.Sprintf("validation error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -196,7 +197,7 @@ func (d *Department) updateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	if err := updateDepartmentDto.Validate(); err != nil {
 		d.logger.Handler.Error("[Update Department] error validating update department", "error", err)
-		writeErrorJSON(w, "validation error", http.StatusBadRequest)
+		writeErrorJSON(w, fmt.Sprintf("validation error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 

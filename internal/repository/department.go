@@ -23,12 +23,16 @@ func NewDepartmentRepository(db *gorm.DB) *DepartmentRepository {
 }
 
 func (dr *DepartmentRepository) CreateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
-	var rec record.DepartmentRecord
+	var rec record.CreateDepartmentRecord
 	rec.FromDomain(department)
 
-	err := dr.db.WithContext(ctx).Raw(query.CreateDepartment, rec.Name, rec.ParentID).Scan(&rec).Error
-	if err != nil {
-		return nil, err
+	result := dr.db.WithContext(ctx).Raw(query.CreateDepartment, rec.Name, rec.ParentID).Scan(&rec)
+	if result.RowsAffected == 0 {
+		return nil, domain.ErrDepartmentAlreadyExists
+	}
+
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	dep, err := rec.ToDomain()
@@ -71,6 +75,7 @@ func (dr *DepartmentRepository) CreateEmployee(ctx context.Context, employee *do
 
 func (dr *DepartmentRepository) ListEmployeesByDepartmentId(ctx context.Context, ids []int) ([]*domain.Employee, error) {
 	employeeRecords := make([]record.EmployeeRecord, 0)
+
 	err := dr.db.WithContext(ctx).Raw(query.ListEmployeesByDepartmentId, ids).Scan(&employeeRecords).Error
 	if err != nil {
 		return nil, err
@@ -125,12 +130,11 @@ func (dr *DepartmentRepository) DepartmentTree(ctx context.Context, id int, dept
 }
 
 func (dr *DepartmentRepository) UpdateDepartment(ctx context.Context, department *domain.Department) (*domain.Department, error) {
-	var rec record.DepartmentRecord
+	var rec record.UpdateDepartmentRecord
 	rec.FromDomain(department)
 
 	err := dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if department.Parent != nil {
-
 			ids := make([]int, 0)
 			tx.Raw(query.DepartmentTreeAllChildrenIds, department.ID).Scan(&ids)
 			if len(ids) != 0 {
@@ -142,16 +146,20 @@ func (dr *DepartmentRepository) UpdateDepartment(ctx context.Context, department
 			}
 		}
 
-		err := tx.Raw(query.UpdateDepartment, rec.Name, rec.ParentID).Scan(&rec).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
+		result := tx.Model(&record.UpdateDepartmentRecord{}).Where("id = ?", department.ID).Updates(rec).Scan(&rec)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				return domain.ErrDepartmentNotFound
 			}
-			return err
+			return result.Error
 		}
 
 		return nil
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	dep, err := rec.ToDomain()
 	if err != nil {
@@ -178,12 +186,7 @@ func (dr *DepartmentRepository) DeleteCascadeDepartment(ctx context.Context, dep
 			departmentIds = append(departmentIds, rec.ID)
 		}
 
-		err = tx.Raw(query.DeleteDepartments, departmentIds).Error
-		if err != nil {
-			return err
-		}
-
-		err = tx.Raw(query.DeleteEmployeesByDepartmentId, departmentIds).Error
+		err = tx.Exec(query.DeleteDepartments, departmentIds).Error
 		if err != nil {
 			return err
 		}
@@ -196,16 +199,17 @@ func (dr *DepartmentRepository) DeleteAndReassignDepartment(ctx context.Context,
 	return dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var exists bool
 		tx.Raw(query.CheckDepartment, departmentId).Scan(&exists)
+
 		if !exists {
 			return domain.ErrDepartmentNotFound
 		}
 
-		err := tx.Raw(query.DeleteDepartments, []int{departmentId}).Error
+		err := tx.Exec(query.UpdateDepartmentForEmployees, reassignDepartmentId, departmentId).Error
 		if err != nil {
 			return err
 		}
 
-		err = tx.Raw(query.UpdateDepartmentForEmployees, reassignDepartmentId, departmentId).Error
+		err = tx.Exec(query.DeleteDepartments, []int{departmentId}).Error
 		if err != nil {
 			return err
 		}

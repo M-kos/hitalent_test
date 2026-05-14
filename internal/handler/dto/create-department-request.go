@@ -20,10 +20,15 @@ func (d *CreateDepartmentRequest) Validate() error {
 }
 
 func (d *CreateDepartmentRequest) ToDomain() *domain.Department {
-	return &domain.Department{
+	dep := &domain.Department{
 		Name: strings.TrimSpace(d.Name),
-		Parent: &domain.Department{
-			ID: *d.ParentID,
-		},
 	}
+
+	if d.ParentID != nil {
+		dep.Parent = &domain.Department{
+			ID: *d.ParentID,
+		}
+	}
+
+	return dep
 }

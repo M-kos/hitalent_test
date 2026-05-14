@@ -60,6 +60,8 @@ services:
       POSTGRES_NAME: ${POSTGRES_NAME}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_HOST: ${POSTGRES_HOST}
+    networks:
+      - department-network
 
 volumes:
   postgres_data:

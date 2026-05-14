@@ -20,11 +20,16 @@ func (d *UpdateDepartmentRequest) Validate() error {
 }
 
 func (d *UpdateDepartmentRequest) ToDomain(id int) *domain.Department {
-	return &domain.Department{
+	dep := &domain.Department{
 		ID:   id,
 		Name: strings.TrimSpace(d.Name),
-		Parent: &domain.Department{
-			ID: *d.ParentID,
-		},
 	}
+
+	if d.ParentID != nil {
+		dep.Parent = &domain.Department{
+			ID: *d.ParentID,
+		}
+	}
+
+	return dep
 }

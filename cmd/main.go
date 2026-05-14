@@ -31,8 +31,8 @@ func main() {
 
 	log := logger.New(conf)
 
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	gormDb, err := db.OpenGormConnection(conf)
 	if err != nil {
@@ -54,7 +54,7 @@ func main() {
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Handler.Error("listen and serve", "msg", err.Error())
-			cancel()
+			stop()
 		}
 	}()
 

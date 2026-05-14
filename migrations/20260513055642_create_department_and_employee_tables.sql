@@ -7,24 +7,19 @@ CREATE TABLE IF NOT EXISTS department
 	parent_id BIGINT NULL REFERENCES department (id) ON DELETE SET NULL CHECK ( parent_id IS NULL OR parent_id != id),
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-	UNIQUE(parent_id, name)
+	CONSTRAINT department_parent_name_unique
+		UNIQUE NULLS NOT DISTINCT(parent_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS employee
 (
 	id BIGSERIAL PRIMARY KEY,
-	department_id BIGINT NULL REFERENCES department (id) ON DELETE SET NULL,
+	department_id BIGINT NULL REFERENCES department (id) ON DELETE CASCADE,
 	full_name TEXT NOT NULL,
 	position TEXT NOT NULL,
 	hired_at TIMESTAMPTZ NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE UNIQUE INDEX department_parent_name_uidx
-	ON department (
-	                COALESCE(parent_id, 0),
-	                name
-		);
 
 CREATE INDEX idx_department_parent_id
 	ON department(parent_id);
