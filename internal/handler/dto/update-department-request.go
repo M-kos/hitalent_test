@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"strings"
+
 	"github.com/M-kos/hitalent_test/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
@@ -12,6 +14,7 @@ type UpdateDepartmentRequest struct {
 
 func (d *UpdateDepartmentRequest) Validate() error {
 	validate := validator.New()
+	d.Name = strings.TrimSpace(d.Name)
 
 	return validate.Struct(d)
 }
@@ -19,7 +22,7 @@ func (d *UpdateDepartmentRequest) Validate() error {
 func (d *UpdateDepartmentRequest) ToDomain(id int) *domain.Department {
 	return &domain.Department{
 		ID:   id,
-		Name: d.Name,
+		Name: strings.TrimSpace(d.Name),
 		Parent: &domain.Department{
 			ID: *d.ParentID,
 		},

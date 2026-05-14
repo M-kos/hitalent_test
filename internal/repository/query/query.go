@@ -15,6 +15,8 @@ var (
 	DeleteEmployeesByDepartmentId string
 	//go:embed department-tree.sql
 	DepartmentTree string
+	//go:embed department-tree-all-children-ids.sql
+	DepartmentTreeAllChildrenIds string
 	//go:embed list-employees-by-department-id.sql
 	ListEmployeesByDepartmentId string
 	//go:embed update-department.sql

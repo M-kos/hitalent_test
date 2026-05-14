@@ -128,13 +128,30 @@ func (dr *DepartmentRepository) UpdateDepartment(ctx context.Context, department
 	var rec record.DepartmentRecord
 	rec.FromDomain(department)
 
-	err := dr.db.WithContext(ctx).Raw(query.UpdateDepartment, rec.Name, rec.ParentID).Scan(&rec).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domain.ErrDepartmentNotFound
+	err := dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if department.Parent != nil {
+
+			ids := make([]int, 0)
+			tx.Raw(query.DepartmentTreeAllChildrenIds, department.ID).Scan(&ids)
+			if len(ids) != 0 {
+				for _, id := range ids {
+					if id == department.Parent.ID {
+						return domain.ErrWrongParentId
+					}
+				}
+			}
 		}
-		return nil, err
-	}
+
+		err := tx.Raw(query.UpdateDepartment, rec.Name, rec.ParentID).Scan(&rec).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domain.ErrDepartmentNotFound
+			}
+			return err
+		}
+
+		return nil
+	})
 
 	dep, err := rec.ToDomain()
 	if err != nil {

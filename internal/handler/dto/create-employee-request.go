@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"strings"
 	"time"
 
 	"github.com/M-kos/hitalent_test/internal/domain"
@@ -15,6 +16,7 @@ type CreateEmployeeRequest struct {
 
 func (e *CreateEmployeeRequest) Validate() error {
 	validate := validator.New()
+	e.FullName = strings.TrimSpace(e.FullName)
 
 	return validate.Struct(e)
 }
@@ -22,7 +24,7 @@ func (e *CreateEmployeeRequest) Validate() error {
 func (e *CreateEmployeeRequest) ToDomain(id int) (*domain.Employee, error) {
 	employee := &domain.Employee{
 		DepartmentID: &id,
-		FullName:     e.FullName,
+		FullName:     strings.TrimSpace(e.FullName),
 		Position:     e.Position,
 		CreatedAt:    time.Now(),
 	}
