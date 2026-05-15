@@ -47,20 +47,7 @@ func (dr *DepartmentRepository) CreateEmployee(ctx context.Context, employee *do
 	var rec record.EmployeeRecord
 	rec.FromDomain(employee)
 
-	err := dr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var exists bool
-		tx.Raw(query.CheckDepartment, employee.DepartmentID).Scan(&exists)
-		if !exists {
-			return domain.ErrDepartmentNotFound
-		}
-
-		err := tx.Raw(query.CreateEmployee, rec.DepartmentID, rec.FullName, rec.Position, rec.HiredAt).Scan(&rec).Error
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
+	err := dr.db.WithContext(ctx).Raw(query.CreateEmployee, rec.DepartmentID, rec.FullName, rec.Position, rec.HiredAt).Scan(&rec).Error
 	if err != nil {
 		return nil, err
 	}
